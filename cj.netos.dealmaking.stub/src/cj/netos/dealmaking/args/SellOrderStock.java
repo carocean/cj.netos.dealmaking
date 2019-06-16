@@ -15,12 +15,18 @@ public class SellOrderStock {
 	String orderno;
 	String seller;
 	List<Stock> stocks;
+	BigDecimal feeRate;//手续费率
 	long otime;//委托时间
 	BigDecimal sellingPrice;
 
 	public SellOrderStock() {
 	}
-
+	public BigDecimal getFeeRate() {
+		return feeRate;
+	}
+	public void setFeeRate(BigDecimal feeRate) {
+		this.feeRate = feeRate;
+	}
 	public String getNo() {
 		return no;
 	}

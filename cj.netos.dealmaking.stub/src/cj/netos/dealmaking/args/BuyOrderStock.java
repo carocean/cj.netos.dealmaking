@@ -10,10 +10,16 @@ public class BuyOrderStock {
 	String buyer;
 	BigDecimal amount;
 	BigDecimal buyingPrice;
+	BigDecimal feeRate;//手续费率
 	long otime;//委托买入时间
 	public BuyOrderStock() {
 	}
-	
+	public BigDecimal getFeeRate() {
+		return feeRate;
+	}
+	public void setFeeRate(BigDecimal feeRate) {
+		this.feeRate = feeRate;
+	}
 	public BigDecimal getBuyingPrice() {
 		return buyingPrice;
 	}

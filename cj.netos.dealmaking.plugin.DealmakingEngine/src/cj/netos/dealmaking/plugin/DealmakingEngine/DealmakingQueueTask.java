@@ -1,6 +1,5 @@
 package cj.netos.dealmaking.plugin.DealmakingEngine;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -13,7 +12,6 @@ import cj.netos.dealmaking.bs.IMarketInitializer;
 import cj.netos.dealmaking.bs.IMarketSellOrderQueueBS;
 import cj.netos.dealmaking.bs.IQueueEvent;
 import cj.netos.dealmaking.plugin.DealmakingEngine.bs.IDealmakingQueueTask;
-import cj.netos.dealmaking.util.BigDecimalConstants;
 import cj.studio.ecm.CJSystem;
 import cj.studio.ecm.IChip;
 import cj.studio.ecm.IServiceSite;
@@ -89,7 +87,7 @@ public class DealmakingQueueTask implements IDealmakingQueueTask {
 				}
 				for (String market : markets) {
 					CJSystem.logging().info(getClass(), "发现市场：" + market);
-					dealmaking(market);
+					checkAndCommitDealmakingable(market);
 				}
 				empty.await(6000L, TimeUnit.MILLISECONDS);
 			} catch (Exception e) {
@@ -101,7 +99,7 @@ public class DealmakingQueueTask implements IDealmakingQueueTask {
 
 	}
 
-	private void dealmaking(String market) throws InterruptedException {
+	private void checkAndCommitDealmakingable(String market) throws InterruptedException {
 		BuyOrderStock buy = this.marketBuyOrderQueueBS.peek(market);
 
 		if (buy == null) {
@@ -117,25 +115,14 @@ public class DealmakingQueueTask implements IDealmakingQueueTask {
 			CJSystem.logging().info(getClass(), "\t\t未达到交易条件");
 			return;
 		}
-		/*
-		 * 撮合:以买单作为参考等成交方式。如果买单钱/撮合价>1个卖单量,需找下一个卖单同时通知一单合约成功签定（卖单完全成交），直到找到的卖单为空则退出（
-		 * 不论买方完全成交与否，但买方的钱已被扣减）。如果买单钱/撮合价=卖单量，则直接双方完全成交，并返回。如果买单钱/撮合价<卖单量，则取下一个买单与之成交同时通知一单合约成功签定
-		 * （买单完全成交），直到找到买单为空则退出（不论卖方完全成交与否，但卖方的量已被扣减）
-		 */
-		CJSystem.logging().info(getClass(), "\t\t进入撮合");
-
-		BigDecimal stockPrice = (buy.getBuyingPrice().add(sell.getSellingPrice())).divide(new BigDecimal("2"),
-				BigDecimalConstants.scale, BigDecimalConstants.roundingMode);
+		//该市场有撮合交易，则进入撮合线程执行
+		CJSystem.logging().info(getClass(), "\t\t进入撮合程序");
 
 		// 根据撮合价再计算买方能买多少，且考虑手续费扣减问题
 		Event e = new Event(market, "dealmakingContract");
-		e.getParameters().put("buy", buy);
-		e.getParameters().put("sell", sell);
-		e.getParameters().put("stockPrice", stockPrice);
+		e.getParameters().put("buy",buy);
+		e.getParameters().put("sell",sell);
 		reactor.input(e);
-		this.marketBuyOrderQueueBS.remove(market, buy.getNo());
-		this.marketSellOrderQueueBS.remove(market, sell.getNo());
-		CJSystem.logging().info(getClass(), "\t\t成功撮合一个合约，成交价：" + stockPrice);
 
 	}
 
