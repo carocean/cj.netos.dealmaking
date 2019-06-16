@@ -1,0 +1,5 @@
+#org.springsource.ide.eclipse.gradle.core.preferences.GradleProjectPreferences
+#Fri Jun 14 21:01:38 CST 2019
+build.family.org.gradle.tooling.model.eclipse.HierarchicalEclipseProject=;cj.netos.dealmaking.main;cj.netos.dealmaking.plugin.DealmakingEngine;cj.netos.dealmaking.program;cj.netos.dealmaking.stub;
+org.springsource.ide.eclipse.gradle.linkedresources=
+org.springsource.ide.eclipse.gradle.rootprojectloc=

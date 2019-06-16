@@ -1,0 +1,48 @@
+sourceSets { 
+	 main { 
+	 	java{
+	 		srcDir "$projectDir/src"
+	 	}
+	 	resources{
+		 	srcDir "$projectDir/site-src"
+		 }
+	 } 
+ 	}
+ 	sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+ 	tasks.withType(JavaCompile) {  
+        options.encoding = "UTF-8"  
+    } 
+ repositories { 
+	 flatDir(dirs: "../global/lib") 
+ } 
+
+dependencies {
+	compile group: 'cj.netos.fsbank', name: 'cj.netos.inform', version: ref_cj_netos_inform_version
+	compile project(':cj.netos.dealmaking.stub');
+	compile fileTree('../global/runtime')
+	//compile fileTree('src/cj/references')
+	
+}
+
+task copyRefembeds(type: Copy) {
+    into 'src/cj/refembeds'
+    from(configurations.all) {
+        include 'cj.netos.inform-*.jar'
+        //下面在执行uploadArchives方法时只执行删除缺不拷贝，因此注释掉
+       // delete fileTree("src/cj/refembeds").matching {
+       // 	include "cj.studio.orm.mongodb-*.jar"
+    	//}
+    }
+}
+task releaseToHost(type: Copy) {
+ 	dependsOn 'copyRefembeds', "build",":cj.netos.dealmaking.stub:release"
+ 	from 'build/libs/'
+	into '../cmdtools/gateway-2.1.2/assemblies/dealmaking'
+ 	include '**/*.jar'
+  	exclude '**/*-javadoc.jar','**/*-sources.jar'
+ }
+ 
+ task release(type:Copy){
+  	dependsOn "releaseToHost"
+ }
