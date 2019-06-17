@@ -80,7 +80,7 @@ public class MarketSellOrderQueueBS implements IMarketSellOrderQueueBS {
 		Bson filter = Document.parse(String.format("{'_id':ObjectId('%s')}", stockno));
 		Bson update = Document.parse(String.format("{'$set':{'tuple.stocks':%s}}", new Gson().toJson(stocks)));
 		UpdateOptions op = new UpdateOptions();
-		op.upsert(true);
+		op.upsert(false);
 		marketStore.market(market).updateDocOne(TABLE_queue_sellOrder, filter, update, op);
 	}
 

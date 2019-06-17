@@ -21,6 +21,14 @@ public class SellOrderStock {
 
 	public SellOrderStock() {
 	}
+	public BigDecimal totalStockQuantities() {
+		if(stocks==null)return new BigDecimal("0.0");
+		BigDecimal ret=new BigDecimal("0.0");
+		for(Stock stock:stocks) {
+			ret=ret.add(stock.getQuantities());
+		}
+		return ret;
+	}
 	public BigDecimal getFeeRate() {
 		return feeRate;
 	}

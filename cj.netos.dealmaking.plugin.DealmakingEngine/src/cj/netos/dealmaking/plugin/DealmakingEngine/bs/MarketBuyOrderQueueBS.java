@@ -13,7 +13,6 @@ import cj.lns.chip.sos.cube.framework.IDocument;
 import cj.lns.chip.sos.cube.framework.IQuery;
 import cj.lns.chip.sos.cube.framework.TupleDocument;
 import cj.netos.dealmaking.args.BuyOrderStock;
-import cj.netos.dealmaking.args.SellOrderStock;
 import cj.netos.dealmaking.bs.IMarketBuyOrderQueueBS;
 import cj.netos.dealmaking.bs.IMarketInitializer;
 import cj.netos.dealmaking.bs.IQueueEvent;
@@ -52,7 +51,7 @@ public class MarketBuyOrderQueueBS implements IMarketBuyOrderQueueBS {
 	public BuyOrderStock peek(String market) {
 		String cjql = String.format(
 				"select {'tuple':'*'}.sort({'tuple.buyingPrice':-1,'tuple.otime':1}).skip(0).limit(1) from tuple %s %s where {}",
-				TABLE_queue_buyOrder, SellOrderStock.class.getName(), market);
+				TABLE_queue_buyOrder, BuyOrderStock.class.getName(), market);
 		IQuery<BuyOrderStock> q = marketStore.market(market).createQuery(cjql);
 		IDocument<BuyOrderStock> doc = q.getSingleResult();
 		if (doc == null)
@@ -80,7 +79,7 @@ public class MarketBuyOrderQueueBS implements IMarketBuyOrderQueueBS {
 		Bson filter = Document.parse(String.format("{'_id':ObjectId('%s')}", stockno));
 		Bson update = Document.parse(String.format("{'$set':{'tuple.amount':%s}}", amount));
 		UpdateOptions op = new UpdateOptions();
-		op.upsert(true);
+		op.upsert(false);
 		marketStore.market(market).updateDocOne(TABLE_queue_buyOrder, filter, update, op);
 	}
 
