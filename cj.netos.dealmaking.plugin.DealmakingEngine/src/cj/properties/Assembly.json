@@ -17,11 +17,6 @@
 		],		
 		activators : [
 			{
-				name:'反应器',
-				class:'cj.netos.dealmaking.plugin.DealmakingEngine.ReactorEntrypointActivitor',
-				parameters:{
-					}
-			},{
 				name:'交易引擎启停器',
 				class:'cj.netos.dealmaking.plugin.DealmakingEngine.DealmakingEngineEntrypointActivitor',
 				parameters:{

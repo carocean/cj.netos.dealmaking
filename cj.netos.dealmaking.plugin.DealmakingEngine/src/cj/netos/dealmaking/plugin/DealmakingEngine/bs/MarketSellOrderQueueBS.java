@@ -40,11 +40,14 @@ public class MarketSellOrderQueueBS implements IMarketSellOrderQueueBS {
 					Document.parse("{'tuple.sellingPrice':1,'tuple.otime':1}"));// 价格升序、委托时间升序，意为：最低价且越早的越优先成交，并且价格优先于时间
 			marketInitializer.setMarketInitialized(market);
 			CJSystem.logging().debug(getClass(),String.format("市场：%s 已建立索引：%s",market,result));
+			if(event!=null) {
+				event.onevent("marketInitialized",market);
+			}
 		}
 		String id = marketStore.market(market).saveDoc(TABLE_queue_sellOrder, new TupleDocument<>(sellOrderStock));
 		sellOrderStock.setNo(id);
 		if(event!=null) {
-			event.onevent("offer",market);
+			event.onevent("offer",market,id);
 		}
 	}
 

@@ -1,30 +1,38 @@
 package cj.netos.dealmaking.plugin.DealmakingEngine;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.List;
 
-import cj.netos.dealmaking.plugin.DealmakingEngine.bs.IDealmakingQueueTask;
+import cj.netos.dealmaking.bs.IMarketBuyOrderQueueBS;
+import cj.netos.dealmaking.bs.IMarketInitializer;
+import cj.netos.dealmaking.bs.IMarketSellOrderQueueBS;
+import cj.studio.ecm.IChip;
 import cj.studio.ecm.IEntryPointActivator;
 import cj.studio.ecm.IServiceSite;
 import cj.studio.ecm.context.IElement;
 
 public class DealmakingEngineEntrypointActivitor implements IEntryPointActivator {
+	IMarketEngine engine;
 	
-	ExecutorService exe;
-	private Future<?> future;
-
 	@Override
 	public void activate(IServiceSite site, IElement args) {
-		exe = Executors.newSingleThreadExecutor();
-		IDealmakingQueueTask task = new DealmakingQueueTask(site);
-		this.future=exe.submit(task);
+		engine=new MarketEngine(site);
+		IMarketBuyOrderQueueBS marketBuyOrderQueueBS = (IMarketBuyOrderQueueBS) site.getService("marketBuyOrderQueueBS");
+		IMarketSellOrderQueueBS marketSellOrderQueueBS = (IMarketSellOrderQueueBS) site.getService("marketSellOrderQueueBS");
+		marketBuyOrderQueueBS.onevent(engine.buyOrderQueueEvent());
+		marketSellOrderQueueBS.onevent(engine.sellOrderQueueEvent());
+		
+		IChip chip = (IChip) site.getService(IChip.class.getName());
+		String dealmakingEngineID = chip.info().getId();
+		IMarketInitializer marketInitializer = (IMarketInitializer) site.getService("marketInitializer");
+		List<String> marketsInDB = marketInitializer.pageMarket(dealmakingEngineID);
+		for (String market : marketsInDB) {
+			engine.runMarket(market);
+		}
 	}
 
 	@Override
 	public void inactivate(IServiceSite site) {
-		future.cancel(true);
-		exe.shutdown();
+		engine.stop();
 	}
 
 }
