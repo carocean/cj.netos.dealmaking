@@ -13,6 +13,7 @@ public class DealmakingContract {
 	String sellorderno;//原卖单单号
 	String seller;//卖方
 	String buyer;//买方
+	EDealmakingMode dealmakingMode;//成交模式
 	BigDecimal forSellQuantities;//卖方申售量
 	BigDecimal forBuyAmount;//卖方申购金
 	BigDecimal stockPrice;//成交价格
@@ -34,6 +35,12 @@ public class DealmakingContract {
 	}
 	public void setNo(String no) {
 		this.no = no;
+	}
+	public EDealmakingMode getDealmakingMode() {
+		return dealmakingMode;
+	}
+	public void setDealmakingMode(EDealmakingMode dealmakingMode) {
+		this.dealmakingMode = dealmakingMode;
 	}
 	public String getBuyorderno() {
 		return buyorderno;

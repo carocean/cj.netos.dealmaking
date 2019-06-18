@@ -6,6 +6,7 @@ import java.util.List;
 
 import cj.netos.dealmaking.args.BuyOrderStock;
 import cj.netos.dealmaking.args.DealmakingContract;
+import cj.netos.dealmaking.args.EDealmakingMode;
 import cj.netos.dealmaking.args.SellOrderStock;
 import cj.netos.dealmaking.args.Stock;
 import cj.netos.dealmaking.bs.IDealmakingContractBS;
@@ -50,25 +51,14 @@ public class DealmakingQueueTask implements IDealmakingQueueTask {
 				CJSystem.logging().info(getClass(), "\t\t未达到交易条件");
 				break;
 			}
-
+			// 该市场有撮合交易，则进入撮合线程执行
+			CJSystem.logging().info(getClass(), "\t\t进入撮合程序");
 			try {
-				checkAndCommitDealmakingable(buy, sell);
-			} catch (CircuitException e) {
+				signContract(buy, sell);
+			} catch (Exception e) {
 				CJSystem.logging().error(getClass(), e);
 			}
 		}
-	}
-
-	private void checkAndCommitDealmakingable(BuyOrderStock buy, SellOrderStock sell) throws CircuitException {
-		// 该市场有撮合交易，则进入撮合线程执行
-		CJSystem.logging().info(getClass(), "\t\t进入撮合程序");
-		boolean exit = false;
-		do {
-			if (sell == null || buy == null || buy.getBuyingPrice().compareTo(sell.getSellingPrice()) < 0) {
-				break;
-			}
-			signContract(buy, sell);
-		} while (exit);
 	}
 
 	// 扣手续费：按交易价从买扣除。使之买的帑银量变少，之后将卖方的帑银给买方。
@@ -126,6 +116,7 @@ public class DealmakingQueueTask implements IDealmakingQueueTask {
 			// 仅在发买单完全成交时有余量，则为：卖方余量=卖方申售量-买方实得量
 			sellRemainingQuantities = stockQuantities.subtract(buyQuantities);
 
+			contract.setDealmakingMode(EDealmakingMode.baseBuyOrder);
 			contract.setBuyQuantities(buyQuantities);
 			contract.setPayAmount(payAmount.setScale(2, BigDecimalConstants.roundingMode));
 			contract.setSellAmount(sellAmount.setScale(2, BigDecimalConstants.roundingMode));
@@ -161,6 +152,7 @@ public class DealmakingQueueTask implements IDealmakingQueueTask {
 			// 仅在卖单完全成交时有余金，则为：买方余金=买方申购金-买方实付金
 			buyRemainingAmount = buy.getAmount().subtract(payAmount);
 
+			contract.setDealmakingMode(EDealmakingMode.baseSellOrder);
 			contract.setBuyQuantities(buyQuantities);
 			contract.setPayAmount(payAmount.setScale(2, BigDecimalConstants.roundingMode));
 			contract.setSellAmount(sellAmount.setScale(2, BigDecimalConstants.roundingMode));
@@ -191,6 +183,7 @@ public class DealmakingQueueTask implements IDealmakingQueueTask {
 			buyFeeAmount = payableAmount.multiply(buy.getFeeRate());
 			sellFeeAmount = buyQuantities.multiply(stockPrice).multiply(sell.getFeeRate());
 
+			contract.setDealmakingMode(EDealmakingMode.Both);
 			contract.setBuyQuantities(buyQuantities);
 			contract.setPayAmount(payAmount.setScale(2, BigDecimalConstants.roundingMode));
 			contract.setSellAmount(sellAmount.setScale(2, BigDecimalConstants.roundingMode));
